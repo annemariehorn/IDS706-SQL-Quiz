@@ -1,6 +1,8 @@
 import streamlit as st
 from supabase import create_client
 from questions import questions
+import psycopg2
+import pandas as pd
 
 st.set_page_config(
     page_title="SQL Quiz",
@@ -65,6 +67,40 @@ if st.button("Sign Out"):
 
 st.divider()
 
+
+def run_sql(query):
+    # Connect using the read-only database user
+    connection = psycopg2.connect(
+        host=st.secrets["DB_HOST"],
+        port=st.secrets["DB_PORT"],
+        dbname=st.secrets["DB_NAME"],
+        user=st.secrets["DB_USER"],
+        password=st.secrets["DB_PASSWORD"],
+        sslmode=st.secrets["DB_SSLMODE"],
+        connect_timeout=10,
+    )
+
+    try:
+        # Prevent queries from modifying the database
+        connection.set_session(readonly=True, autocommit=False)
+
+        with connection.cursor() as cursor:
+            cursor.execute("SET LOCAL statement_timeout = '5s'")
+            cursor.execute(query)
+
+            if cursor.description is None:
+                raise ValueError("Only queries returning results are allowed.")
+
+            columns = [column[0] for column in cursor.description]
+            rows = cursor.fetchall()
+
+        return pd.DataFrame(rows, columns=columns)
+
+    finally:
+        connection.rollback()
+        connection.close()
+
+
 # Quiz questions
 for i, q in enumerate(questions):
     st.subheader(f"Question {i + 1} ({q['points']} points)")
@@ -80,5 +116,19 @@ for i, q in enumerate(questions):
         height=120,
         placeholder="SELECT ..."
     )
+
+    if st.button("Run SQL", key=f"run_{i}"):
+        query = st.session_state[f"sql_{i}"].strip()
+
+        if not query:
+            st.warning("Please enter a SQL query.")
+        elif not query.lower().startswith(("select ", "with ", "select\n", "with\n")):
+            st.error("Only SELECT queries are allowed.")
+        else:
+            try:
+                result = run_sql(query)
+                st.dataframe(result, use_container_width=True)
+            except Exception:
+                st.error("Query failed. Check your SQL syntax and try again.")
 
     st.divider()
