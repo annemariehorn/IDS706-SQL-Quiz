@@ -47,9 +47,10 @@ if not st.session_state.access_token:
             st.session_state.access_token = response.session.access_token
             st.session_state.user_email = response.user.email
             st.rerun()
+        
+        except Exception as e:
+            st.error(f"Login failed: {e}")
 
-        except Exception:
-            st.error("Login failed. Please check your credentials.")
 
     st.stop()
 
