@@ -105,10 +105,14 @@ def run_sql(query):
 for i, q in enumerate(questions):
     st.subheader(f"Question {i + 1} ({q['points']} points)")
     st.write(q["question"])
-
+    
     with st.expander("Show Hint"):
         st.write(q["hint"])
+
+    with st.expander("Show Expected Answer"):
         st.code(q["expected_sql"], language="sql")
+        st.write("Run this query to view the expected results.")
+
 
     st.text_area(
         "Write your SQL query:",
