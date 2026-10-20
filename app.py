@@ -48,6 +48,7 @@ if not st.session_state.access_token:
 
             st.session_state.access_token = response.session.access_token
             st.session_state.user_email = response.user.email
+            st.session_state.user_id = response.user.id
             st.rerun()
         
         except Exception as e:
@@ -64,6 +65,32 @@ if st.button("Sign Out"):
     st.session_state.access_token = None
     st.session_state.user_email = None
     st.rerun()
+
+
+    if st.button("Save Answer", key=f"save_{i}"):
+        answer = st.session_state[f"sql_{i}"].strip()
+
+        if not answer:
+            st.warning("Please enter a SQL answer before saving.")
+        else:
+            try:
+                # Authenticate the request using the signed-in user's token
+                supabase.postgrest.auth(st.session_state.access_token)
+
+                # Save or update this user's answer
+                supabase.table("quiz_answers").upsert(
+                    {
+                        "user_id": st.session_state.user_id,
+                        "question_number": i + 1,
+                        "sql_answer": answer,
+                    },
+                    on_conflict="user_id,question_number",
+                ).execute()
+
+                st.success("Answer saved successfully!")
+
+            except Exception:
+                st.error("Unable to save your answer. Please try again.")
 
 st.divider()
 
