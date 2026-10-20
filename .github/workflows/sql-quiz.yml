@@ -45,6 +45,7 @@ jobs:
               assert question["question"]
               assert question["hint"]
               assert question["expected_sql"]
+              assert question["expected_result"]
 
           print("Quiz configuration checks passed!")
           PY
