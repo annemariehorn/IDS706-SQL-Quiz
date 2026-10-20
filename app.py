@@ -69,7 +69,7 @@ if st.button("Sign Out"):
 st.divider()
 
 
-def run_sql(query):
+def run_sql(query, params=None):
     # Connect using the read-only database user
     connection = psycopg2.connect(
         host=st.secrets["DB_HOST"],
@@ -87,7 +87,7 @@ def run_sql(query):
 
         with connection.cursor() as cursor:
             cursor.execute("SET LOCAL statement_timeout = '5s'")
-            cursor.execute(query)
+            cursor.execute(query, params)
 
             if cursor.description is None:
                 raise ValueError("Only queries returning results are allowed.")
@@ -121,6 +121,12 @@ for i, q in enumerate(questions):
         height=120,
         placeholder="SELECT ..."
     )
+    
+    params_text = st.text_input(
+        "SQL parameters (optional, comma-separated):",
+        key=f"params_{i}",
+        placeholder="Example: 90"
+    )
 
     if st.button("Run SQL", key=f"run_{i}"):
         query = st.session_state[f"sql_{i}"].strip()
@@ -131,7 +137,20 @@ for i, q in enumerate(questions):
             st.error("Only SELECT queries are allowed.")
         else:
             try:
-                result = run_sql(query)
+                
+                params_text = st.session_state[f"params_{i}"].strip()
+
+                # Convert comma-separated values into SQL parameters
+                params = None
+                if params_text:
+                    params = tuple(
+                        int(value.strip()) if value.strip().lstrip("-").isdigit()
+                        else value.strip()
+                        for value in params_text.split(",")
+                    )
+
+                result = run_sql(query, params)
+                
                 st.dataframe(result, use_container_width=True)
             except Exception:
                 st.error("Query failed. Check your SQL syntax and try again.")
