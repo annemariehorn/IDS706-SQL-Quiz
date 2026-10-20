@@ -13,15 +13,14 @@ st.set_page_config(
 st.title("SQL Practice Quiz")
 st.write("Students and Grades | 20 Points")
 
-# Connect to Supabase
-@st.cache_resource
-def get_supabase():
-    return create_client(
+# Create a separate Supabase client for each Streamlit session
+if "supabase_client" not in st.session_state:
+    st.session_state.supabase_client = create_client(
         st.secrets["SUPABASE_URL"],
         st.secrets["SUPABASE_KEY"]
     )
 
-supabase = get_supabase()
+supabase = st.session_state.supabase_client
 
 # Initialize login session
 if "access_token" not in st.session_state:
@@ -64,33 +63,8 @@ if st.button("Sign Out"):
     supabase.auth.sign_out()
     st.session_state.access_token = None
     st.session_state.user_email = None
+    st.session_state.user_id = None
     st.rerun()
-
-
-    if st.button("Save Answer", key=f"save_{i}"):
-        answer = st.session_state[f"sql_{i}"].strip()
-
-        if not answer:
-            st.warning("Please enter a SQL answer before saving.")
-        else:
-            try:
-                # Authenticate the request using the signed-in user's token
-                supabase.postgrest.auth(st.session_state.access_token)
-
-                # Save or update this user's answer
-                supabase.table("quiz_answers").upsert(
-                    {
-                        "user_id": st.session_state.user_id,
-                        "question_number": i + 1,
-                        "sql_answer": answer,
-                    },
-                    on_conflict="user_id,question_number",
-                ).execute()
-
-                st.success("Answer saved successfully!")
-
-            except Exception:
-                st.error("Unable to save your answer. Please try again.")
 
 st.divider()
 
@@ -162,4 +136,29 @@ for i, q in enumerate(questions):
             except Exception:
                 st.error("Query failed. Check your SQL syntax and try again.")
 
+    if st.button("Save Answer", key=f"save_{i}"):
+        answer = st.session_state[f"sql_{i}"].strip()
+
+        if not answer:
+            st.warning("Please enter a SQL answer before saving.")
+        else:
+            try:
+                # Authenticate the request using the signed-in user's token
+                supabase.postgrest.auth(st.session_state.access_token)
+
+                # Save or update this user's answer
+                supabase.table("quiz_answers").upsert(
+                    {
+                        "user_id": st.session_state.user_id,
+                        "question_number": i + 1,
+                        "sql_answer": answer,
+                    },
+                    on_conflict="user_id,question_number",
+                ).execute()
+
+                st.success("Answer saved successfully!")
+
+            except Exception:
+                st.error("Unable to save your answer. Please try again.")
+    
     st.divider()
