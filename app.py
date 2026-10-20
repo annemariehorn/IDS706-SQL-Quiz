@@ -49,10 +49,9 @@ if not st.session_state.access_token:
             st.session_state.user_email = response.user.email
             st.session_state.user_id = response.user.id
             st.rerun()
-        
+
         except Exception as e:
             st.error(f"Login failed: {e}")
-
 
     st.stop()
 
@@ -106,14 +105,14 @@ def run_sql(query, params=None):
 for i, q in enumerate(questions):
     st.subheader(f"Question {i + 1} ({q['points']} points)")
     st.write(q["question"])
-    
+
     with st.expander("Show Hint"):
         st.write(q["hint"])
 
     with st.expander("Show Expected Answer"):
         st.code(q["expected_sql"], language="sql")
-        st.write("Run this query to view the expected results.")
-
+        st.write("Expected Result:")
+        st.write(q["expected_result"])
 
     st.text_area(
         "Write your SQL query:",
@@ -121,7 +120,7 @@ for i, q in enumerate(questions):
         height=120,
         placeholder="SELECT ..."
     )
-    
+
     params_text = st.text_input(
         "SQL parameters (optional, comma-separated):",
         key=f"params_{i}",
@@ -137,7 +136,6 @@ for i, q in enumerate(questions):
             st.error("Only SELECT queries are allowed.")
         else:
             try:
-                
                 params_text = st.session_state[f"params_{i}"].strip()
 
                 # Convert comma-separated values into SQL parameters
@@ -150,7 +148,7 @@ for i, q in enumerate(questions):
                     )
 
                 result = run_sql(query, params)
-                
+
                 st.dataframe(result, use_container_width=True)
             except Exception:
                 st.error("Query failed. Check your SQL syntax and try again.")
@@ -179,5 +177,5 @@ for i, q in enumerate(questions):
 
             except Exception:
                 st.error("Unable to save your answer. Please try again.")
-    
+
     st.divider()
