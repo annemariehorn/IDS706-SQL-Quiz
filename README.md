@@ -6,6 +6,8 @@ A 20-point interactive SQL quiz built with Streamlit, PostgreSQL, and Supabase f
 
 [Open the SQL Practice Quiz](https://ids706-sql-quiz-myhp2pmt25fwtcsnxopr2.streamlit.app)
 
+A test account is required to sign in and access the quiz.
+
 ## Features
 
 - Five SQL questions worth 4 points each (20 points total)
@@ -50,6 +52,75 @@ SELECT * FROM students WHERE grade > %s;
 Enter `90` in the SQL parameters field, then click **Run SQL**. The application will return students whose grades are above 90.
 
 Parameters are passed separately from the SQL query rather than inserted directly into the query string.
+
+## Setup and Configuration
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/annemariehorn/IDS706-SQL-Quiz.git
+cd IDS706-SQL-Quiz
+```
+
+### 2. Install Dependencies
+
+Install the required Python packages:
+
+```bash
+pip install -r requirements.txt
+```
+
+### 3. Configure Supabase
+
+The application uses a Supabase project with a hosted PostgreSQL database.
+
+The database includes:
+
+- `students` — Sample student records used for SQL questions
+- `quiz_answers` — SQL answers saved by authenticated users
+- `quiz_audit_log` — Records inserts and updates to saved answers
+
+Supabase Authentication manages student login accounts.
+
+Row Level Security (RLS) restricts access to saved answers, and a database trigger automatically records answer changes in the audit log.
+
+A restricted PostgreSQL role is used to execute student SQL queries with read-only permissions.
+
+### 4. Configure Streamlit Secrets
+
+The application requires Supabase authentication credentials and PostgreSQL connection details.
+
+For local development, create a `.streamlit/secrets.toml` file with the following configuration:
+
+```toml
+SUPABASE_URL = "your_supabase_project_url"
+SUPABASE_KEY = "your_supabase_publishable_or_anon_key"
+
+DB_HOST = "your_postgresql_host"
+DB_PORT = 5432
+DB_NAME = "postgres"
+DB_USER = "your_read_only_database_user"
+DB_PASSWORD = "your_database_password"
+DB_SSLMODE = "require"
+```
+
+Replace the placeholder values with credentials from your own Supabase project.
+
+Do not commit `secrets.toml` or database passwords to GitHub.
+
+For the deployed application, these values are configured in Streamlit Community Cloud under the application's Secrets settings.
+
+### 5. Run the Application
+
+Start the Streamlit application locally:
+
+```bash
+streamlit run app.py
+```
+
+Open the local URL provided by Streamlit and sign in with an authorized Supabase account.
+
+The deployed version is hosted on Streamlit Community Cloud and is linked above.
 
 ## Security
 
