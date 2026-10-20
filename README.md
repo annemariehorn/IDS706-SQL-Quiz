@@ -15,6 +15,7 @@ A 20-point interactive SQL quiz built with Streamlit, PostgreSQL, and Supabase f
 - Read-only database access for SQL execution
 - Save and update student answers
 - Row Level Security (RLS) for saved answers
+- Parameterized SQL queries using psycopg2
 - Database-triggered audit log for answer changes
 - GitHub Actions CI workflow
 
@@ -33,25 +34,47 @@ A 20-point interactive SQL quiz built with Streamlit, PostgreSQL, and Supabase f
 2. Sign in with an authorized test account.
 3. Read each SQL question and enter a query.
 4. Click **Run SQL** to execute the query and view the results.
-5. Click **Save Answer** to save your response.
+5. Click **Save Answer** to save or update your response.
+6. Use the **Show Hint** and **Show Expected Answer** sections for guidance.
+
+### Parameterized SQL
+
+The application supports parameterized SQL queries using psycopg2. To use this feature, include `%s` as a placeholder in your query and enter the corresponding value in the SQL parameters field.
+
+For example:
+
+```sql
+SELECT * FROM students WHERE grade > %s;
+```
+
+Enter `90` in the SQL parameters field, then click **Run SQL**. The application will return students whose grades are above 90.
+
+Parameters are passed separately from the SQL query rather than inserted directly into the query string.
 
 ## Security
 
-- Database credentials are stored in Streamlit Secrets, not in the repository.
-- SQL queries run through a restricted, read-only PostgreSQL role.
+- Database credentials are stored in Streamlit Secrets rather than in the repository.
+- SQL queries execute through a restricted, read-only PostgreSQL role.
 - Supabase authentication is required to access the quiz.
-- Saved answers are protected by Row Level Security.
-- An audit trigger records answer inserts and updates.
+- Saved answers are protected by Row Level Security (RLS).
+- A database trigger automatically records answer inserts and updates in an audit log.
+- GitHub Actions uses a repository secret to store the Supabase project URL.
 
 ## Continuous Integration
 
-GitHub Actions automatically installs dependencies, checks Python syntax, and validates the quiz configuration.
+GitHub Actions runs automatically when changes are pushed to the main branch. The workflow:
 
-The workflow uses a GitHub repository secret for the Supabase project URL.
+- Installs Python dependencies
+- Checks Python syntax
+- Verifies that the quiz contains five questions totaling 20 points
+- Checks that the required Supabase configuration secret is present
+
+The workflow can also be run manually from the GitHub Actions tab.
 
 ## Project Structure
 
-- `app.py` — Streamlit application
+- `app.py` — Streamlit application, authentication, SQL execution, and answer saving
 - `questions.py` — Quiz questions, hints, and expected SQL
 - `requirements.txt` — Python dependencies
-- `.github/workflows/sql-quiz.yml` — GitHub Actions workflow
+- `.github/workflows/sql-quiz.yml` — GitHub Actions CI workflow
+- `.gitignore` — Files excluded from version control
