@@ -28,13 +28,13 @@ questions = [
         "points": 4,
         "hint": "Use the AVG() aggregate function.",
         "expected_sql": "SELECT ROUND(AVG(grade), 2) AS average_grade FROM students;",
-        "expected_result": "Returns one row containing the average grade across all 10 students, rounded to two decimal places."
+        "expected_result": "Returns one row with an average_grade of 86.80."
     },
     {
         "question": "Count how many students are enrolled in each course.",
         "points": 4,
         "hint": "Use COUNT(*) and GROUP BY.",
         "expected_sql": "SELECT course, COUNT(*) AS student_count FROM students GROUP BY course ORDER BY course;",
-        "expected_result": "Returns one row per course, showing the course name and the number of students enrolled in that course."
+        "expected_result": "Returns three rows: English (3 students), Math (4 students), and Science (3 students)."
     }
 ]
