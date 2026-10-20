@@ -4,7 +4,7 @@ A 20-point interactive SQL quiz built with Streamlit, PostgreSQL, and Supabase f
 
 ## Live Application
 
-[Open the SQL Practice Quiz](https://ids706-sql-quiz-myhp2pmt25fwtcsnxopr2.streamlit.app)
+[Open the SQL Practice Quiz](https://ids706-sql-quiz-myhp2pmt25fwftcsnxopr2.streamlit.app/)
 
 A test account is required to sign in and access the quiz.
 
